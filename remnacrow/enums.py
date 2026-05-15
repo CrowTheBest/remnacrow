@@ -16,6 +16,14 @@ class TrafficLimitStrategy(enum.StrEnum):
     MONTH_ROLLING = "MONTH_ROLLING"
 
 
+class NodeBulkAction(enum.StrEnum):
+    """Action passed to ``NodesRoute.bulk_nodes_action`` for many nodes at once"""
+    ENABLE = "ENABLE"
+    DISABLE = "DISABLE"
+    RESTART = "RESTART"
+    RESET_TRAFFIC = "RESET_TRAFFIC"
+
+
 class FilterMode(enum.StrEnum):
     """Filter modes accepted by the panel for ``UsersRoute.get_users``"""
     CONTAINS = "contains"

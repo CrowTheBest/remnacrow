@@ -7,7 +7,7 @@ import aiohttp
 import msgspec
 
 from .exceptions import error_for_status
-from .routes import HwidRoute, UsersRoute
+from .routes import HwidRoute, NodesRoute, UsersRoute
 
 DECODER_CACHE: dict[Any, msgspec.json.Decoder] = {}
 ENCODER = msgspec.json.Encoder()
@@ -39,6 +39,7 @@ class RemnawaveClient:
 
         self.users = UsersRoute(self)
         self.hwid = HwidRoute(self)
+        self.nodes = NodesRoute(self)
 
         # atexit fallback: if the user never calls `await close()`, the connector
         # still gets shut down on interpreter exit (no "Unclosed client session"

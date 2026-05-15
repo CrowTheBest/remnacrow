@@ -84,7 +84,6 @@ Modes: `contains`, `startsWith`, `endsWith`, `equals`. Use `UserField` / `HwidFi
 
 ## TODO
 
-- [ ] `client.nodes` — node management
 - [ ] `client.squads` — internal / external squads
 - [ ] `client.subscriptions` — subscription routes
 - [ ] `client.stats` — bandwidth / system stats
