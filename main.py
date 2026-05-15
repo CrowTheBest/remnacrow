@@ -19,10 +19,7 @@ async def main() -> None:
         #                                            Sort(UserField.USERNAME)]))))
 
         # print(await client.users.get_users_by_telegram_id(telegram_id=946562779))
-        print(await client.hwid.get_devices(filters=[
-                Filter(HwidField.PLATFORM, 'android')
-        ],
-        sort=[Sort(HwidField.OS_VERSION)]))
+        print(await client.subscriptions.get_subpage_config('CrowTheBest', request_headers={}))
 
 
 

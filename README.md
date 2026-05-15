@@ -84,7 +84,6 @@ Modes: `contains`, `startsWith`, `endsWith`, `equals`. Use `UserField` / `HwidFi
 
 ## TODO
 
-- [ ] `client.subscriptions` — subscription routes
 - [ ] `client.stats` — bandwidth / system stats
 - [ ] Retries and rate-limit handling
 - [ ] Publish to PyPI
