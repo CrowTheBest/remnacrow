@@ -407,7 +407,7 @@ async def test_connected_node_system_block(client, mock_api):
 async def test_nodes_route_mounted_on_client(client):
     """Sanity check: every documented nodes method is callable through client.nodes"""
     expected = {
-        "create_node", "get_all_nodes", "update_node",
+        "create_node", "get_nodes", "update_node",
         "get_node_by_uuid", "delete_node",
         "reorder_nodes", "restart_all_nodes",
         "bulk_nodes_action", "bulk_profile_modification", "bulk_update_nodes",

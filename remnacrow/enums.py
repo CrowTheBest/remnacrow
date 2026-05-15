@@ -16,6 +16,16 @@ class TrafficLimitStrategy(enum.StrEnum):
     MONTH_ROLLING = "MONTH_ROLLING"
 
 
+class SubscriptionTemplateType(enum.StrEnum):
+    """Output format an external squad's subscription template renders to"""
+    XRAY_JSON = "XRAY_JSON"
+    XRAY_BASE64 = "XRAY_BASE64"
+    MIHOMO = "MIHOMO"
+    STASH = "STASH"
+    CLASH = "CLASH"
+    SINGBOX = "SINGBOX"
+
+
 class NodeBulkAction(enum.StrEnum):
     """Action passed to ``NodesRoute.bulk_nodes_action`` for many nodes at once"""
     ENABLE = "ENABLE"
