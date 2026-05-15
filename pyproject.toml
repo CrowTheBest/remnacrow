@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "remnacrow"
+description = "Async super fast Remnawave API client built on aiohttp + msgspec"
+authors = [{ name = "CrowTheBest" }]
+license = "MIT"
+requires-python = ">=3.11"
+dynamic = ["version"]
+keywords = ["remnawave", "vpn", "api", "client", "async", "aiohttp", "msgspec", "xray"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP",
+    "Typing :: Typed",
+]
+dependencies = [
+    "aiohttp",
+    "msgspec",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "aioresponses",
+]
+
+[project.urls]
+Homepage = "https://github.com/CrowTheBest/remnacrow"
+Repository = "https://github.com/CrowTheBest/remnacrow"
+Issues = "https://github.com/CrowTheBest/remnacrow/issues"
+
+[tool.hatch.version]
+path = "remnacrow/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["remnacrow"]
+
+[tool.hatch.build.targets.sdist]
+include = ["remnacrow/", "tests/", "LICENSE", "README.md", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
