@@ -12,6 +12,7 @@ from .routes import (
     HwidRoute,
     InternalSquadsRoute,
     NodesRoute,
+    StatsRoute,
     SubscriptionPageConfigsRoute,
     SubscriptionSettingsRoute,
     SubscriptionTemplatesRoute,
@@ -56,6 +57,7 @@ class RemnawaveClient:
         self.subscription_templates = SubscriptionTemplatesRoute(self)
         self.subscription_settings = SubscriptionSettingsRoute(self)
         self.subscription_page_configs = SubscriptionPageConfigsRoute(self)
+        self.stats = StatsRoute(self)
 
         # atexit fallback: if the user never calls `await close()`, the connector
         # still gets shut down on interpreter exit (no "Unclosed client session"
