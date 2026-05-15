@@ -1,5 +1,15 @@
-from ..enums import FilterMode, TrafficLimitStrategy, UserField, UserStatus
+from ..enums import FilterMode, HwidField, TrafficLimitStrategy, UserField, UserStatus
 from .filters import Filter, Sort
+from .hwid import (
+    HwidAppCount,
+    HwidDevice,
+    HwidDevicesPage,
+    HwidDevicesStats,
+    HwidGlobalStats,
+    HwidPlatformCount,
+    HwidTopUser,
+    HwidTopUsersPage,
+)
 from .users import (
     AccessibleNode,
     AccessibleNodesResult,
@@ -19,6 +29,15 @@ __all__ = [
     "AccessibleSquad",
     "Filter",
     "FilterMode",
+    "HwidAppCount",
+    "HwidDevice",
+    "HwidDevicesPage",
+    "HwidDevicesStats",
+    "HwidField",
+    "HwidGlobalStats",
+    "HwidPlatformCount",
+    "HwidTopUser",
+    "HwidTopUsersPage",
     "ResolvedUser",
     "Sort",
     "Squad",

@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from typing import Any
 
@@ -12,7 +11,7 @@ from ..models.users import (
     User,
     UsersPage,
 )
-from .base import BaseRoute, pack
+from .base import BaseRoute, build_list_params, pack
 
 
 class UsersRoute(BaseRoute):
@@ -167,22 +166,10 @@ class UsersRoute(BaseRoute):
             the count of users matching the query, **not** how many were
             returned in this request (use ``len(.users)`` for that)
         """
-        params: dict[str, Any] = {"size": size, "start": start}
-        if filters:
-            params["filters"] = json.dumps(
-                [{"id": filter_item.field, "value": filter_item.value} for filter_item in filters]
-            )
-            modes = {filter_item.field: filter_item.mode for filter_item in filters if filter_item.mode is not None}
-            if modes:
-                params["filterModes"] = json.dumps(modes)
-        if sort:
-            params["sorting"] = json.dumps(
-                [{"id": sort_item.field, "desc": sort_item.desc} for sort_item in sort]
-            )
         envelope: Envelope[UsersPage] = await self._client.request(
             "GET",
             "/api/users",
-            params=params,
+            params=build_list_params(size, start, filters, sort),
             response_type=Envelope[UsersPage],
         )
         return envelope.response

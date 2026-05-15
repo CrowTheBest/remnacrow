@@ -48,9 +48,42 @@ async def main():
 asyncio.run(main())
 ```
 
+## Filters & sort
+
+`client.users.get_users` and `client.hwid.get_devices` accept TanStack-table-style filters and sorting — the same query format the admin UI uses (not in the OpenAPI spec, but the panel honours it):
+
+```python
+from remnacrow.models import Filter, FilterMode, Sort, UserField, UserStatus
+
+page = await client.users.get_users(
+    filters=[
+        Filter(UserField.USERNAME, "crow", FilterMode.STARTS_WITH),
+        Filter(UserField.STATUS, UserStatus.ACTIVE, FilterMode.EQUALS),
+        Filter(UserField.TAG, "VPN") # let the panel to deside filter mode
+    ],
+    sort=[Sort(UserField.USED_TRAFFIC_BYTES, desc=True)],
+)
+```
+
+Same shape for HWID devices:
+
+```python
+from remnacrow.models import Filter, FilterMode, HwidField, Sort
+
+page = await client.hwid.get_devices(
+    filters=[
+        # Note that FilterMode.EQUALS is case-sensitive while others are not
+        Filter(HwidField.PLATFORM, "Android", FilterMode.EQUALS),
+        Filter(HwidField.OS_VERSION, "14", FilterMode.STARTS_WITH),
+    ],
+    sort=[Sort(HwidField.UPDATED_AT, desc=True)],
+)
+```
+
+Modes: `contains`, `startsWith`, `endsWith`, `equals`. Use `UserField` / `HwidField` enums for column-name autocomplete.
+
 ## TODO
 
-- [ ] `client.hwid` — HWID device routes
 - [ ] `client.nodes` — node management
 - [ ] `client.squads` — internal / external squads
 - [ ] `client.subscriptions` — subscription routes

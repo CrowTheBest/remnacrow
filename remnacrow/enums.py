@@ -24,8 +24,21 @@ class FilterMode(enum.StrEnum):
     EQUALS = "equals"
 
 
+class HwidField(enum.StrEnum):
+    """Column names of the HWID devices table — used as ``Filter.field`` / ``Sort.field``"""
+    HWID = "hwid"
+    USER_UUID = "userUuid"
+    PLATFORM = "platform"
+    OS_VERSION = "osVersion"
+    DEVICE_MODEL = "deviceModel"
+    USER_AGENT = "userAgent"
+    CREATED_AT = "createdAt"
+    UPDATED_AT = "updatedAt"
+
+
 class UserField(enum.StrEnum):
-    """Column names of the users table — used as ``Filter.field`` / ``Sort.field``
+    """
+    Column names of the users table — used as ``Filter.field`` / ``Sort.field``
 
     Includes nested fields (``userTraffic.*``) which use dotted paths on the wire.
     """
