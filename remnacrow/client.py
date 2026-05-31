@@ -39,6 +39,7 @@ class RemnawaveClient:
         token: str,
         *,
         timeout: float = 30.0,
+        custom_headers: dict[str, str] | None = None,
     ) -> None:
         if not base_url.startswith(("http://", "https://")):
             base_url = f"https://{base_url}"
@@ -46,6 +47,7 @@ class RemnawaveClient:
         self._base_url = base_url.rstrip("/")
         self._token = token
         self._timeout = aiohttp.ClientTimeout(total=timeout)
+        self._custom_headers = custom_headers or {}
         self._session: aiohttp.ClientSession | None = None
 
         self.users = UsersRoute(self)
@@ -110,12 +112,18 @@ class RemnawaveClient:
 
     def _ensure_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
+            headers = {
+                "Authorization": f"Bearer {self._token}",
+                "User-Agent": "remnacrow",
+            }
+            if self._base_url.startswith("http://"):
+                headers["x-forwarded-proto"] = "https"
+                headers["x-forwarded-for"] = "127.0.0.1"
+            headers.update(self._custom_headers)
+
             self._session = aiohttp.ClientSession(
                 timeout=self._timeout,
-                headers={
-                    "Authorization": f"Bearer {self._token}",
-                    "User-Agent": "remnacrow",
-                },
+                headers=headers,
             )
         return self._session
 

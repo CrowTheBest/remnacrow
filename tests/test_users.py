@@ -696,6 +696,50 @@ async def test_bearer_token_in_authorization_header(client, mock_api):
     assert client._session.headers.get("User-Agent") == "remnacrow"
 
 
+async def test_http_base_url_adds_forwarded_headers(mock_api):
+    from remnacrow import RemnawaveClient
+
+    mock_api.get(
+        "http://127.0.0.1:3000/api/users/tags",
+        payload={"response": {"tags": []}},
+    )
+
+    client_instance = RemnawaveClient("http://127.0.0.1:3000", "t")
+    try:
+        await client_instance.users.get_all_tags()
+        assert client_instance._session is not None
+        assert client_instance._session.headers.get("x-forwarded-proto") == "https"
+        assert client_instance._session.headers.get("x-forwarded-for") == "127.0.0.1"
+    finally:
+        await client_instance.close()
+
+
+async def test_custom_headers_are_merged_last(mock_api):
+    from remnacrow import RemnawaveClient
+
+    mock_api.get(
+        "http://127.0.0.1:3000/api/users/tags",
+        payload={"response": {"tags": []}},
+    )
+
+    client_instance = RemnawaveClient(
+        "http://127.0.0.1:3000",
+        "t",
+        custom_headers={
+            "x-forwarded-for": "10.0.0.5",
+            "X-Api-Key": "caddy-token",
+        },
+    )
+    try:
+        await client_instance.users.get_all_tags()
+        assert client_instance._session is not None
+        assert client_instance._session.headers.get("x-forwarded-proto") == "https"
+        assert client_instance._session.headers.get("x-forwarded-for") == "10.0.0.5"
+        assert client_instance._session.headers.get("X-Api-Key") == "caddy-token"
+    finally:
+        await client_instance.close()
+
+
 @pytest.mark.parametrize(
     "status, exc",
     [
