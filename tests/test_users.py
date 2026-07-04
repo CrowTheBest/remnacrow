@@ -419,6 +419,28 @@ async def test_get_user_subscription_request_history(client, mock_api):
     history = await client.users.get_user_subscription_request_history("u-1")
     assert isinstance(history, SubscriptionRequestHistory)
     assert history.records[0].request_ip == "1.2.3.4"
+    assert history.records[0].user_uuid == "u-1"
+
+
+async def test_get_user_subscription_request_history_accepts_user_id(client, mock_api):
+    payload = {
+        "response": {
+            "total": 1,
+            "records": [{
+                "id": 1,
+                "userId": 123,
+                "requestAt": "2026-05-01T12:00:00Z",
+                "requestIp": "1.2.3.4",
+                "userAgent": "Happ/1.0",
+            }],
+        },
+    }
+    mock_api.get(f"{BASE_URL}/api/users/u-1/subscription-request-history", payload=payload)
+
+    history = await client.users.get_user_subscription_request_history("u-1")
+
+    assert history.records[0].user_id == 123
+    assert history.records[0].user_uuid is None
 
 
 async def test_get_user_by_short_uuid(client, mock_api):

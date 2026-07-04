@@ -6,6 +6,32 @@ from ..models.hwid import HwidDevicesPage, HwidDevicesStats, HwidTopUsersPage
 from .base import BaseRoute, build_list_params, pack
 
 
+def _pack_user_reference(
+    user_uuid: str | int | None = None,
+    user_id: int | None = None,
+) -> dict[str, Any]:
+    if user_id is not None:
+        if user_uuid is not None:
+            raise ValueError("Pass either user_uuid or user_id, not both")
+        return {"userId": user_id}
+
+    if user_uuid is None:
+        raise ValueError("Pass user_uuid or user_id")
+
+    if isinstance(user_uuid, int):
+        return {"userId": user_uuid}
+
+    return {"userUuid": user_uuid}
+
+
+def _user_reference_path(
+    user_uuid: str | int | None = None,
+    user_id: int | None = None,
+) -> str:
+    body = _pack_user_reference(user_uuid, user_id)
+    return str(next(iter(body.values())))
+
+
 class HwidRoute(BaseRoute):
     """``/api/hwid`` endpoints, mounted at ``RemnawaveClient.hwid``"""
 
@@ -29,7 +55,7 @@ class HwidRoute(BaseRoute):
         ``contains``, ``startsWith``, ``endsWith``, ``equals``.
 
         Use :class:`~remnacrow.models.HwidField` for autocomplete on column
-        names: ``hwid``, ``userUuid``, ``platform``, ``osVersion``,
+        names: ``hwid``, ``userUuid`` / ``userId``, ``platform``, ``osVersion``,
         ``deviceModel``, ``userAgent``, ``createdAt``, ``updatedAt``.
 
         :param size: page size; defaults to 25 to match the panel default
@@ -51,8 +77,9 @@ class HwidRoute(BaseRoute):
     async def create_device(
         self,
         hwid: str,
-        user_uuid: str,
+        user_uuid: str | int | None = None,
         *,
+        user_id: int | None = None,
         platform: str | None = None,
         os_version: str | None = None,
         device_model: str | None = None,
@@ -62,7 +89,9 @@ class HwidRoute(BaseRoute):
         Register a new HWID device for a user (POST /api/hwid/devices)
 
         :param hwid: device hardware id
-        :param user_uuid: uuid of the user this device belongs to
+        :param user_uuid: legacy uuid of the user this device belongs to;
+            passing an ``int`` sends the new ``userId`` payload
+        :param user_id: numeric user id for newer Remnawave versions
         :param platform: platform string (e.g. ``"iOS"``, ``"Android"``, ``"Windows"``)
         :param os_version: OS version string
         :param device_model: human-readable device model
@@ -72,12 +101,12 @@ class HwidRoute(BaseRoute):
         """
         body = pack(
             hwid=hwid,
-            user_uuid=user_uuid,
             platform=platform,
             os_version=os_version,
             device_model=device_model,
             user_agent=user_agent,
         )
+        body.update(_pack_user_reference(user_uuid, user_id))
         envelope: Envelope[HwidDevicesPage] = await self._client.request(
             "POST",
             "/api/hwid/devices",
@@ -86,16 +115,27 @@ class HwidRoute(BaseRoute):
         )
         return envelope.response
 
-    async def delete_device(self, user_uuid: str, hwid: str) -> HwidDevicesPage:
+    async def delete_device(
+        self,
+        user_uuid: str | int | None = None,
+        hwid: str | None = None,
+        *,
+        user_id: int | None = None,
+    ) -> HwidDevicesPage:
         """
         Delete one HWID device (POST /api/hwid/devices/delete)
 
-        :param user_uuid: uuid of the user that owns the device
+        :param user_uuid: legacy uuid of the user that owns the device;
+            passing an ``int`` sends the new ``userId`` payload
         :param hwid: hardware id of the device to delete
+        :param user_id: numeric user id for newer Remnawave versions
         :return: :class:`~remnacrow.models.HwidDevicesPage` with the user's
             remaining devices after deletion
         """
-        body = pack(user_uuid=user_uuid, hwid=hwid)
+        if hwid is None:
+            raise ValueError("hwid is required")
+        body = pack(hwid=hwid)
+        body.update(_pack_user_reference(user_uuid, user_id))
         envelope: Envelope[HwidDevicesPage] = await self._client.request(
             "POST",
             "/api/hwid/devices/delete",
@@ -104,16 +144,23 @@ class HwidRoute(BaseRoute):
         )
         return envelope.response
 
-    async def delete_all_devices(self, user_uuid: str) -> HwidDevicesPage:
+    async def delete_all_devices(
+        self,
+        user_uuid: str | int | None = None,
+        *,
+        user_id: int | None = None,
+    ) -> HwidDevicesPage:
         """
         Delete every HWID device that belongs to a user
         (POST /api/hwid/devices/delete-all)
 
-        :param user_uuid: uuid of the user whose devices to wipe
+        :param user_uuid: legacy uuid of the user whose devices to wipe;
+            passing an ``int`` sends the new ``userId`` payload
+        :param user_id: numeric user id for newer Remnawave versions
         :return: :class:`~remnacrow.models.HwidDevicesPage` — typically with
             an empty ``devices`` list and ``total=0``
         """
-        body = pack(user_uuid=user_uuid)
+        body = _pack_user_reference(user_uuid, user_id)
         envelope: Envelope[HwidDevicesPage] = await self._client.request(
             "POST",
             "/api/hwid/devices/delete-all",
@@ -161,18 +208,26 @@ class HwidRoute(BaseRoute):
         )
         return envelope.response
 
-    async def get_user_devices(self, user_uuid: str) -> HwidDevicesPage:
+    async def get_user_devices(
+        self,
+        user_uuid: str | int | None = None,
+        *,
+        user_id: int | None = None,
+    ) -> HwidDevicesPage:
         """
         All HWID devices that belong to a specific user
-        (GET /api/hwid/devices/{userUuid})
+        (GET /api/hwid/devices/{userUuid|userId})
 
-        :param user_uuid: uuid of the user
+        :param user_uuid: legacy uuid of the user; passing an ``int`` uses the
+            new numeric id path
+        :param user_id: numeric user id for newer Remnawave versions
         :return: :class:`~remnacrow.models.HwidDevicesPage` with the user's
             devices and total count
         """
+        user_reference = _user_reference_path(user_uuid, user_id)
         envelope: Envelope[HwidDevicesPage] = await self._client.request(
             "GET",
-            f"/api/hwid/devices/{user_uuid}",
+            f"/api/hwid/devices/{user_reference}",
             response_type=Envelope[HwidDevicesPage],
         )
         return envelope.response

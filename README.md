@@ -2,13 +2,12 @@
 
 A modern, pythonic async client for the [Remnawave](https://remna.st/) panel API. Built on **aiohttp + msgspec**, fully typed, follows Python conventions all the way down.
 
-> [Russian README →](./README-RU.md)
-
 > PyPI release coming soon. Until then — install straight from GitHub.
 
 ## Requirements
 
 - **Python 3.11+** (verified on 3.11 — 3.14)
+- **Remnawave** 2.7.x - 2.8.0
 
 ## Installation
 

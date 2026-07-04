@@ -46,6 +46,7 @@ class HwidField(enum.StrEnum):
     """Column names of the HWID devices table — used as ``Filter.field`` / ``Sort.field``"""
     HWID = "hwid"
     USER_UUID = "userUuid"
+    USER_ID = "userId"
     PLATFORM = "platform"
     OS_VERSION = "osVersion"
     DEVICE_MODEL = "deviceModel"

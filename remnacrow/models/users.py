@@ -81,10 +81,11 @@ class AccessibleNodesResult(Struct):
 # item of records[] in GetUserSubscriptionRequestHistoryResponseDto.response
 class SubscriptionRequestRecord(Struct):
     id: int
-    user_uuid: str
     request_at: datetime
     request_ip: str | None
     user_agent: str | None
+    user_uuid: str | None = None
+    user_id: int | None = None
 
 
 # GetUserSubscriptionRequestHistoryResponseDto.response

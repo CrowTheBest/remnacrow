@@ -6,13 +6,14 @@ from .base import Struct
 # items of .response.devices[] in most *HwidDevice*ResponseDto schemas
 class HwidDevice(Struct):
     hwid: str
-    user_uuid: str
     platform: str | None
     os_version: str | None
     device_model: str | None
     user_agent: str | None
     created_at: datetime
     updated_at: datetime
+    user_uuid: str | None = None
+    user_id: int | None = None
 
 
 # .response in GetAllHwidDevicesResponseDto, CreateUserHwidDeviceResponseDto,
@@ -51,10 +52,17 @@ class HwidDevicesStats(Struct):
 
 # item of .response.users[] in GetTopUsersByHwidDevicesResponseDto
 class HwidTopUser(Struct):
-    user_uuid: str
-    id: int
     username: str
     devices_count: int
+    id: int | None = None
+    user_uuid: str | None = None
+    user_id: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.user_id is None and self.id is not None:
+            self.user_id = self.id
+        elif self.id is None and self.user_id is not None:
+            self.id = self.user_id
 
 
 # .response in GetTopUsersByHwidDevicesResponseDto

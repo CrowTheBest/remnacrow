@@ -29,6 +29,17 @@ SAMPLE_DEVICE: dict[str, Any] = {
     "updatedAt": "2026-05-15T12:00:00Z",
 }
 
+SAMPLE_DEVICE_WITH_USER_ID: dict[str, Any] = {
+    "hwid": "device-abc",
+    "userId": 123,
+    "platform": "iOS",
+    "osVersion": "17.4",
+    "deviceModel": "iPhone 15 Pro",
+    "userAgent": "Happ/1.0",
+    "createdAt": "2026-05-01T12:00:00Z",
+    "updatedAt": "2026-05-15T12:00:00Z",
+}
+
 
 async def test_get_all_devices_paginated(client, mock_api):
     url = f"{BASE_URL}/api/hwid/devices?size=50&start=10"
@@ -44,6 +55,19 @@ async def test_get_all_devices_paginated(client, mock_api):
     assert isinstance(page.devices[0], HwidDevice)
     assert page.devices[0].platform == "iOS"
     assert page.devices[0].os_version == "17.4"
+
+
+async def test_get_all_devices_accepts_user_id_payload(client, mock_api):
+    url = f"{BASE_URL}/api/hwid/devices?size=50&start=10"
+    mock_api.get(
+        url,
+        payload={"response": {"devices": [SAMPLE_DEVICE_WITH_USER_ID], "total": 1}},
+    )
+
+    page = await client.hwid.get_devices(size=50, start=10)
+
+    assert page.devices[0].user_id == 123
+    assert page.devices[0].user_uuid is None
 
 
 async def test_get_all_devices_no_args_sends_defaults(client, mock_api):
@@ -82,6 +106,19 @@ async def test_create_device(client, mock_api):
     }
 
 
+async def test_create_device_with_user_id(client, mock_api):
+    mock_api.post(
+        f"{BASE_URL}/api/hwid/devices",
+        payload={"response": {"devices": [SAMPLE_DEVICE_WITH_USER_ID], "total": 1}},
+    )
+
+    page = await client.hwid.create_device("device-abc", user_id=123)
+
+    assert page.devices[0].user_id == 123
+    call = last_request(mock_api, "POST", f"{BASE_URL}/api/hwid/devices")
+    assert request_body(call) == {"hwid": "device-abc", "userId": 123}
+
+
 async def test_create_device_only_required_args(client, mock_api):
     """Optional metadata fields stripped when not provided"""
     mock_api.post(
@@ -108,6 +145,18 @@ async def test_delete_device(client, mock_api):
     assert request_body(call) == {"userUuid": "user-uuid-1", "hwid": "hw-bad"}
 
 
+async def test_delete_device_with_user_id(client, mock_api):
+    mock_api.post(
+        f"{BASE_URL}/api/hwid/devices/delete",
+        payload={"response": {"devices": [], "total": 0}},
+    )
+
+    await client.hwid.delete_device(user_id=123, hwid="hw-bad")
+
+    call = last_request(mock_api, "POST", f"{BASE_URL}/api/hwid/devices/delete")
+    assert request_body(call) == {"hwid": "hw-bad", "userId": 123}
+
+
 async def test_delete_all_devices(client, mock_api):
     mock_api.post(
         f"{BASE_URL}/api/hwid/devices/delete-all",
@@ -119,6 +168,18 @@ async def test_delete_all_devices(client, mock_api):
     assert page.total == 0
     call = last_request(mock_api, "POST", f"{BASE_URL}/api/hwid/devices/delete-all")
     assert request_body(call) == {"userUuid": "user-uuid-1"}
+
+
+async def test_delete_all_devices_with_user_id(client, mock_api):
+    mock_api.post(
+        f"{BASE_URL}/api/hwid/devices/delete-all",
+        payload={"response": {"devices": [], "total": 0}},
+    )
+
+    await client.hwid.delete_all_devices(user_id=123)
+
+    call = last_request(mock_api, "POST", f"{BASE_URL}/api/hwid/devices/delete-all")
+    assert request_body(call) == {"userId": 123}
 
 
 async def test_get_devices_stats(client, mock_api):
@@ -174,6 +235,26 @@ async def test_get_top_users(client, mock_api):
     assert isinstance(page.users[0], HwidTopUser)
     assert page.users[0].username == "alice"
     assert page.users[0].devices_count == 7
+    assert page.users[0].user_id == 1
+
+
+async def test_get_top_users_accepts_user_id_payload(client, mock_api):
+    url = f"{BASE_URL}/api/hwid/devices/top-users?size=10&start=0"
+    payload = {
+        "response": {
+            "users": [
+                {"userId": 1, "username": "alice", "devicesCount": 7},
+            ],
+            "total": 1,
+        },
+    }
+    mock_api.get(url, payload=payload)
+
+    page = await client.hwid.get_top_users(size=10, start=0)
+
+    assert page.users[0].id == 1
+    assert page.users[0].user_id == 1
+    assert page.users[0].user_uuid is None
 
 
 async def test_get_user_devices(client, mock_api):
@@ -189,6 +270,18 @@ async def test_get_user_devices(client, mock_api):
     assert page.devices[0].user_uuid == user_uuid
 
 
+async def test_get_user_devices_with_user_id(client, mock_api):
+    mock_api.get(
+        f"{BASE_URL}/api/hwid/devices/123",
+        payload={"response": {"devices": [SAMPLE_DEVICE_WITH_USER_ID], "total": 1}},
+    )
+
+    page = await client.hwid.get_user_devices(user_id=123)
+
+    assert page.total == 1
+    assert page.devices[0].user_id == 123
+
+
 async def test_get_devices_with_filters_and_sort(client, mock_api):
     """Real-world panel query: filter by platform + osVersion, sort by updatedAt"""
     import re
@@ -202,6 +295,7 @@ async def test_get_devices_with_filters_and_sort(client, mock_api):
         start=0,
         filters=[
             Filter(HwidField.PLATFORM, "Android"),
+            Filter(HwidField.USER_ID, "123"),
             Filter(HwidField.OS_VERSION, "14"),
         ],
         sort=[Sort(HwidField.UPDATED_AT)],
@@ -215,6 +309,7 @@ async def test_get_devices_with_filters_and_sort(client, mock_api):
     import json as json_module
     assert json_module.loads(query["filters"]) == [
         {"id": "platform", "value": "Android"},
+        {"id": "userId", "value": "123"},
         {"id": "osVersion", "value": "14"},
     ]
     assert json_module.loads(query["sorting"]) == [
