@@ -14,6 +14,7 @@ class HwidDevice(Struct):
     updated_at: datetime
     user_uuid: str | None = None
     user_id: int | None = None
+    request_ip: str | None = None
 
 
 # .response in GetAllHwidDevicesResponseDto, CreateUserHwidDeviceResponseDto,
@@ -24,16 +25,17 @@ class HwidDevicesPage(Struct):
     total: int
 
 
-# item of .response.byPlatform[] in GetHwidDevicesStatsResponseDto
-class HwidPlatformCount(Struct):
-    platform: str
-    count: int
-
-
 # item of .response.byApp[] in GetHwidDevicesStatsResponseDto
 class HwidAppCount(Struct):
     app: str
     count: int
+
+
+# item of .response.byPlatform[] in GetHwidDevicesStatsResponseDto
+class HwidPlatformCount(Struct):
+    platform: str
+    count: int
+    by_app: list[HwidAppCount] = []
 
 
 # .response.stats in GetHwidDevicesStatsResponseDto
@@ -46,8 +48,22 @@ class HwidGlobalStats(Struct):
 # .response in GetHwidDevicesStatsResponseDto
 class HwidDevicesStats(Struct):
     by_platform: list[HwidPlatformCount]
-    by_app: list[HwidAppCount]
     stats: HwidGlobalStats
+    by_app: list[HwidAppCount] = []
+
+    def __post_init__(self) -> None:
+        if self.by_app:
+            return
+
+        merged: dict[str, int] = {}
+        for platform in self.by_platform:
+            for app in platform.by_app:
+                merged[app.app] = merged.get(app.app, 0) + app.count
+
+        self.by_app = [
+            HwidAppCount(app=app, count=count)
+            for app, count in merged.items()
+        ]
 
 
 # item of .response.users[] in GetTopUsersByHwidDevicesResponseDto

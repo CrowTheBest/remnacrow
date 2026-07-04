@@ -36,6 +36,7 @@ SAMPLE_DEVICE_WITH_USER_ID: dict[str, Any] = {
     "osVersion": "17.4",
     "deviceModel": "iPhone 15 Pro",
     "userAgent": "Happ/1.0",
+    "requestIp": "14.88.13.37",
     "createdAt": "2026-05-01T12:00:00Z",
     "updatedAt": "2026-05-15T12:00:00Z",
 }
@@ -68,6 +69,7 @@ async def test_get_all_devices_accepts_user_id_payload(client, mock_api):
 
     assert page.devices[0].user_id == 123
     assert page.devices[0].user_uuid is None
+    assert page.devices[0].request_ip == "14.88.13.37"
 
 
 async def test_get_all_devices_no_args_sends_defaults(client, mock_api):
@@ -210,9 +212,46 @@ async def test_get_devices_stats(client, mock_api):
     assert stats.by_platform[0].count == 42
     assert isinstance(stats.by_app[0], HwidAppCount)
     assert stats.by_app[0].app == "Happ"
+    assert stats.by_platform[0].by_app == []
     assert isinstance(stats.stats, HwidGlobalStats)
     assert stats.stats.total_unique_devices == 70
     assert stats.stats.average_hwid_devices_per_user == 1.5
+
+
+async def test_get_devices_stats_accepts_nested_by_app(client, mock_api):
+    payload = {
+        "response": {
+            "byPlatform": [
+                {
+                    "platform": "iOS",
+                    "count": 42,
+                    "byApp": [{"app": "Happ", "count": 40}],
+                },
+                {
+                    "platform": "Android",
+                    "count": 30,
+                    "byApp": [
+                        {"app": "Happ", "count": 20},
+                        {"app": "FlClashX", "count": 10},
+                    ],
+                },
+            ],
+            "stats": {
+                "totalUniqueDevices": 70,
+                "totalHwidDevices": 72,
+                "averageHwidDevicesPerUser": 1.5,
+            },
+        },
+    }
+    mock_api.get(f"{BASE_URL}/api/hwid/devices/stats", payload=payload)
+
+    stats = await client.hwid.get_devices_stats()
+
+    assert stats.by_platform[0].by_app[0].app == "Happ"
+    assert stats.by_app == [
+        HwidAppCount(app="Happ", count=60),
+        HwidAppCount(app="FlClashX", count=10),
+    ]
 
 
 async def test_get_top_users(client, mock_api):
