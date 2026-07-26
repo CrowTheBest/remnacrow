@@ -1,6 +1,7 @@
 from typing import Any
 
 from ..enums import SubscriptionTemplateType
+from ..models.common import DeletedResult
 from ..models.envelope import Envelope
 from ..models.subscription_templates import (
     SubscriptionTemplate,
@@ -98,10 +99,10 @@ class SubscriptionTemplatesRoute(BaseRoute):
         :param uuid: uuid of the template to delete
         :return: ``True`` if the panel removed the row (``isDeleted`` flag)
         """
-        data = await self._client.request(
-            "DELETE", f"/api/subscription-templates/{uuid}", response_type=dict,
+        envelope: Envelope[DeletedResult] = await self._client.request(
+            "DELETE", f"/api/subscription-templates/{uuid}", response_type=Envelope[DeletedResult],
         )
-        return bool(data["response"]["isDeleted"])
+        return envelope.response.is_deleted
 
     async def reorder(self, order: dict[str, int]) -> SubscriptionTemplatesPage:
         """

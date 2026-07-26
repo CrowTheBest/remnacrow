@@ -7,7 +7,7 @@ A modern, pythonic async client for the [Remnawave](https://remna.st/) panel API
 ## Requirements
 
 - **Python 3.11+** (verified on 3.11 — 3.14)
-- **Remnawave** 2.7.x - 2.8.0
+- **Remnawave** 2.7.x - 2.8.1
 
 ## Installation
 

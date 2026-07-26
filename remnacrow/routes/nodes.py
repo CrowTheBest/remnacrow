@@ -1,6 +1,7 @@
 from typing import Any
 
 from ..enums import NodeBulkAction
+from ..models.common import DeletedResult, EventSentResult, TagsResult
 from ..models.envelope import Envelope
 from ..models.nodes import Node
 from .base import BaseRoute, pack
@@ -157,10 +158,10 @@ class NodesRoute(BaseRoute):
         :param uuid: uuid of the node to delete
         :return: ``True`` if the panel removed the row (``isDeleted`` flag)
         """
-        data = await self._client.request(
-            "DELETE", f"/api/nodes/{uuid}", response_type=dict
+        envelope: Envelope[DeletedResult] = await self._client.request(
+            "DELETE", f"/api/nodes/{uuid}", response_type=Envelope[DeletedResult]
         )
-        return bool(data["response"]["isDeleted"])
+        return envelope.response.is_deleted
 
     async def reorder_nodes(self, order: dict[str, int]) -> list[Node]:
         """
@@ -189,11 +190,11 @@ class NodesRoute(BaseRoute):
         :return: ``True`` if the restart event was dispatched (``eventSent`` flag)
         """
         body = pack(force_restart=force_restart)
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST", "/api/nodes/actions/restart-all",
-            body=body, response_type=dict,
+            body=body, response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent
 
     async def bulk_nodes_action(
         self, uuids: list[str], action: NodeBulkAction
@@ -208,11 +209,11 @@ class NodesRoute(BaseRoute):
         :return: ``True`` if the action event was dispatched (``eventSent`` flag)
         """
         body = {"uuids": uuids, "action": action}
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST", "/api/nodes/bulk-actions",
-            body=body, response_type=dict,
+            body=body, response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent
 
     async def bulk_profile_modification(
         self,
@@ -238,11 +239,11 @@ class NodesRoute(BaseRoute):
                 "activeInbounds": active_inbounds,
             },
         }
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST", "/api/nodes/bulk-actions/profile-modification",
-            body=body, response_type=dict,
+            body=body, response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent
 
     async def bulk_update_nodes(
         self,
@@ -275,11 +276,11 @@ class NodesRoute(BaseRoute):
             active_plugin_uuid=active_plugin_uuid,
         )
         body: dict[str, Any] = {"uuids": uuids, "fields": fields}
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST", "/api/nodes/bulk-actions/update",
-            body=body, response_type=dict,
+            body=body, response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent
 
     async def get_all_tags(self) -> list[str]:
         """
@@ -287,10 +288,10 @@ class NodesRoute(BaseRoute):
 
         :return: list of unique tag strings, ordering not guaranteed
         """
-        data = await self._client.request(
-            "GET", "/api/nodes/tags", response_type=dict
+        envelope: Envelope[TagsResult] = await self._client.request(
+            "GET", "/api/nodes/tags", response_type=Envelope[TagsResult]
         )
-        return list(data["response"]["tags"])
+        return envelope.response.tags
 
     async def disable_node(self, uuid: str) -> Node:
         """
@@ -331,11 +332,11 @@ class NodesRoute(BaseRoute):
         :param uuid: uuid of the node whose traffic to reset
         :return: ``True`` if the reset event was dispatched (``eventSent`` flag)
         """
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST", f"/api/nodes/{uuid}/actions/reset-traffic",
-            response_type=dict,
+            response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent
 
     async def restart_node(self, uuid: str) -> bool:
         """
@@ -344,8 +345,8 @@ class NodesRoute(BaseRoute):
         :param uuid: uuid of the node to restart
         :return: ``True`` if the restart event was dispatched (``eventSent`` flag)
         """
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST", f"/api/nodes/{uuid}/actions/restart",
-            response_type=dict,
+            response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent

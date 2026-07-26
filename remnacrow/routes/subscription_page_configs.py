@@ -1,5 +1,6 @@
 from typing import Any
 
+from ..models.common import DeletedResult
 from ..models.envelope import Envelope
 from ..models.subscription_page_configs import (
     SubscriptionPageConfig,
@@ -92,10 +93,10 @@ class SubscriptionPageConfigsRoute(BaseRoute):
         :param uuid: uuid of the config to delete
         :return: ``True`` if the panel removed the row (``isDeleted`` flag)
         """
-        data = await self._client.request(
-            "DELETE", f"/api/subscription-page-configs/{uuid}", response_type=dict,
+        envelope: Envelope[DeletedResult] = await self._client.request(
+            "DELETE", f"/api/subscription-page-configs/{uuid}", response_type=Envelope[DeletedResult],
         )
-        return bool(data["response"]["isDeleted"])
+        return envelope.response.is_deleted
 
     async def clone(self, clone_from_uuid: str) -> SubscriptionPageConfig:
         """

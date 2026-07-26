@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any
 
 from ..enums import TrafficLimitStrategy, UserStatus
+from ..models.common import AffectedRowsResult, DeletedResult, EventSentResult, TagsResult
 from ..models.envelope import Envelope
 from ..models.filters import Filter, Sort
 from ..models.users import (
@@ -191,20 +192,20 @@ class UsersRoute(BaseRoute):
         :param uuid: uuid of the user to delete
         :return: True if the panel reports the user was deleted
         """
-        data = await self._client.request(
-            "DELETE", f"/api/users/{uuid}", response_type=dict
+        envelope: Envelope[DeletedResult] = await self._client.request(
+            "DELETE", f"/api/users/{uuid}", response_type=Envelope[DeletedResult]
         )
-        return data["response"]["isDeleted"]
+        return envelope.response.is_deleted
 
     async def get_all_tags(self) -> list[str]:
         """List every distinct tag currently assigned to any user (GET /api/users/tags)
 
         :return: list of tag strings
         """
-        data = await self._client.request(
-            "GET", "/api/users/tags", response_type=dict
+        envelope: Envelope[TagsResult] = await self._client.request(
+            "GET", "/api/users/tags", response_type=Envelope[TagsResult]
         )
-        return data["response"]["tags"]
+        return envelope.response.tags
 
     async def get_user_accessible_nodes(self, uuid: str) -> AccessibleNodesResult:
         """List nodes the user can connect to via their active internal squads
@@ -421,13 +422,13 @@ class UsersRoute(BaseRoute):
         :param status: :class:`~remnacrow.models.UserStatus` of users to delete
         :return: number of users actually deleted
         """
-        data = await self._client.request(
+        envelope: Envelope[AffectedRowsResult] = await self._client.request(
             "POST",
             "/api/users/bulk/delete-by-status",
             body=pack(status=status),
-            response_type=dict,
+            response_type=Envelope[AffectedRowsResult],
         )
-        return data["response"]["affectedRows"]
+        return envelope.response.affected_rows
 
     async def bulk_delete_users(self, uuids: list[str]) -> int:
         """Delete the listed users (POST /api/users/bulk/delete)
@@ -435,13 +436,13 @@ class UsersRoute(BaseRoute):
         :param uuids: list of user uuids to delete
         :return: number of users actually deleted
         """
-        data = await self._client.request(
+        envelope: Envelope[AffectedRowsResult] = await self._client.request(
             "POST",
             "/api/users/bulk/delete",
             body=pack(uuids=uuids),
-            response_type=dict,
+            response_type=Envelope[AffectedRowsResult],
         )
-        return data["response"]["affectedRows"]
+        return envelope.response.affected_rows
 
     async def bulk_revoke_users_subscription(self, uuids: list[str]) -> int:
         """Rotate subscription URLs and credentials for the listed users
@@ -450,13 +451,13 @@ class UsersRoute(BaseRoute):
         :param uuids: list of user uuids
         :return: number of users whose subscriptions were rotated
         """
-        data = await self._client.request(
+        envelope: Envelope[AffectedRowsResult] = await self._client.request(
             "POST",
             "/api/users/bulk/revoke-subscription",
             body=pack(uuids=uuids),
-            response_type=dict,
+            response_type=Envelope[AffectedRowsResult],
         )
-        return data["response"]["affectedRows"]
+        return envelope.response.affected_rows
 
     async def bulk_reset_user_traffic(self, uuids: list[str]) -> int:
         """Zero the current-period traffic counter for the listed users
@@ -465,13 +466,13 @@ class UsersRoute(BaseRoute):
         :param uuids: list of user uuids
         :return: number of users whose traffic was reset
         """
-        data = await self._client.request(
+        envelope: Envelope[AffectedRowsResult] = await self._client.request(
             "POST",
             "/api/users/bulk/reset-traffic",
             body=pack(uuids=uuids),
-            response_type=dict,
+            response_type=Envelope[AffectedRowsResult],
         )
-        return data["response"]["affectedRows"]
+        return envelope.response.affected_rows
 
     async def bulk_update_users(self, uuids: list[str], fields: dict[str, Any]) -> int:
         """Apply the same field updates to a list of users
@@ -482,13 +483,13 @@ class UsersRoute(BaseRoute):
             (same shape ``update_user`` would build internally), used as-is
         :return: number of users updated
         """
-        data = await self._client.request(
+        envelope: Envelope[AffectedRowsResult] = await self._client.request(
             "POST",
             "/api/users/bulk/update",
             body=pack(uuids=uuids, fields=fields),
-            response_type=dict,
+            response_type=Envelope[AffectedRowsResult],
         )
-        return data["response"]["affectedRows"]
+        return envelope.response.affected_rows
 
     async def bulk_update_users_internal_squads(
         self, uuids: list[str], active_internal_squads: list[str]
@@ -500,13 +501,13 @@ class UsersRoute(BaseRoute):
         :param active_internal_squads: replacement list of internal squad uuids
         :return: number of users updated
         """
-        data = await self._client.request(
+        envelope: Envelope[AffectedRowsResult] = await self._client.request(
             "POST",
             "/api/users/bulk/update-squads",
             body=pack(uuids=uuids, active_internal_squads=active_internal_squads),
-            response_type=dict,
+            response_type=Envelope[AffectedRowsResult],
         )
-        return data["response"]["affectedRows"]
+        return envelope.response.affected_rows
 
     async def bulk_extend_expiration_date(
         self, uuids: list[str], extend_days: int
@@ -518,13 +519,13 @@ class UsersRoute(BaseRoute):
         :param extend_days: number of days to add to each user's expireAt
         :return: number of users whose expiration was extended
         """
-        data = await self._client.request(
+        envelope: Envelope[AffectedRowsResult] = await self._client.request(
             "POST",
             "/api/users/bulk/extend-expiration-date",
             body=pack(uuids=uuids, extend_days=extend_days),
-            response_type=dict,
+            response_type=Envelope[AffectedRowsResult],
         )
-        return data["response"]["affectedRows"]
+        return envelope.response.affected_rows
 
     async def bulk_all_update_users(
         self,
@@ -560,13 +561,13 @@ class UsersRoute(BaseRoute):
         body = pack(status=status, traffic_limit_bytes=traffic_limit_bytes,
                     traffic_limit_strategy=traffic_limit_strategy, expire_at=expire_at, description=description,
                     telegram_id=telegram_id, email=email, tag=tag, hwid_device_limit=hwid_device_limit)
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST",
             "/api/users/bulk/all/update",
             body=body or None,
-            response_type=dict,
+            response_type=Envelope[EventSentResult],
         )
-        return data["response"]["eventSent"]
+        return envelope.response.event_sent
 
     async def bulk_all_reset_user_traffic(self) -> bool:
         """Zero the traffic counter for ALL users on the panel
@@ -577,12 +578,12 @@ class UsersRoute(BaseRoute):
 
         :return: True if the reset event was scheduled
         """
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST",
             "/api/users/bulk/all/reset-traffic",
-            response_type=dict,
+            response_type=Envelope[EventSentResult],
         )
-        return data["response"]["eventSent"]
+        return envelope.response.event_sent
 
     async def bulk_all_extend_expiration_date(self, extend_days: int) -> bool:
         """Push ``expireAt`` forward by ``extend_days`` for ALL users on the panel
@@ -593,10 +594,10 @@ class UsersRoute(BaseRoute):
         :param extend_days: number of days to add to every user's expireAt
         :return: True if the extension event was scheduled
         """
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST",
             "/api/users/bulk/all/extend-expiration-date",
             body=pack(extend_days=extend_days),
-            response_type=dict,
+            response_type=Envelope[EventSentResult],
         )
-        return data["response"]["eventSent"]
+        return envelope.response.event_sent

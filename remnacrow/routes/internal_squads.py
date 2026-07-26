@@ -1,3 +1,4 @@
+from ..models.common import DeletedResult, EventSentResult
 from ..models.envelope import Envelope
 from ..models.squads import (
     InternalSquad,
@@ -82,10 +83,10 @@ class InternalSquadsRoute(BaseRoute):
         :param uuid: uuid of the squad to delete
         :return: ``True`` if the panel removed the row (``isDeleted`` flag)
         """
-        data = await self._client.request(
-            "DELETE", f"/api/internal-squads/{uuid}", response_type=dict,
+        envelope: Envelope[DeletedResult] = await self._client.request(
+            "DELETE", f"/api/internal-squads/{uuid}", response_type=Envelope[DeletedResult],
         )
-        return bool(data["response"]["isDeleted"])
+        return envelope.response.is_deleted
 
     async def reorder(self, order: dict[str, int]) -> InternalSquadsPage:
         """
@@ -132,11 +133,11 @@ class InternalSquadsRoute(BaseRoute):
         :return: ``True`` if the bulk-add event was dispatched
             (``eventSent`` flag)
         """
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "POST", f"/api/internal-squads/{uuid}/bulk-actions/add-users",
-            response_type=dict,
+            response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent
 
     async def remove_all_users(self, uuid: str) -> bool:
         """
@@ -147,8 +148,8 @@ class InternalSquadsRoute(BaseRoute):
         :return: ``True`` if the bulk-remove event was dispatched
             (``eventSent`` flag)
         """
-        data = await self._client.request(
+        envelope: Envelope[EventSentResult] = await self._client.request(
             "DELETE", f"/api/internal-squads/{uuid}/bulk-actions/remove-users",
-            response_type=dict,
+            response_type=Envelope[EventSentResult],
         )
-        return bool(data["response"]["eventSent"])
+        return envelope.response.event_sent

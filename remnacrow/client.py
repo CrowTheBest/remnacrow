@@ -2,6 +2,7 @@ import atexit
 import warnings
 from contextlib import suppress
 from typing import Any
+from urllib.parse import urlsplit
 
 import aiohttp
 import msgspec
@@ -20,8 +21,22 @@ from .routes import (
     UsersRoute,
 )
 
+LOCAL_HOSTS = frozenset({
+    "localhost",
+    "127.0.0.1",
+    "::1",
+    "0.0.0.0",
+    "host.docker.internal",
+})
+
 DECODER_CACHE: dict[Any, msgspec.json.Decoder] = {}
 ENCODER = msgspec.json.Encoder()
+
+
+def _is_local_host(url: str) -> bool:
+    """True when ``url`` points at this machine (loopback / docker host)"""
+    host = (urlsplit(url).hostname or "").lower()
+    return host in LOCAL_HOSTS or host.endswith(".localhost")
 
 
 def _decoder(response_type: Any) -> msgspec.json.Decoder:
@@ -40,7 +55,23 @@ class RemnawaveClient:
         *,
         timeout: float = 30.0,
         custom_headers: dict[str, str] | None = None,
+        send_forwarded_headers: bool | None = None,
     ) -> None:
+        """
+        :param base_url: panel host; ``https://`` is assumed when no scheme is given
+        :param token: API token or admin JWT sent as ``Authorization: Bearer``
+        :param timeout: total per-request timeout in seconds
+        :param custom_headers: extra headers merged into every request (wins over
+            the defaults)
+        :param send_forwarded_headers: whether to spoof
+            ``x-forwarded-proto: https`` / ``x-forwarded-for: 127.0.0.1``, which the
+            panel needs to accept plain-http calls. ``None`` (default) sends them
+            only when ``base_url`` is ``http://`` **and** points at this machine
+            (localhost / 127.0.0.1 / ::1 / host.docker.internal). ``True`` forces
+            them on for any ``http://`` host — needed for in-cluster names such as
+            ``http://remnawave:3000``, but never point that at a third-party host:
+            you would be forging a client IP. ``False`` disables them entirely.
+        """
         if not base_url.startswith(("http://", "https://")):
             base_url = f"https://{base_url}"
 
@@ -48,6 +79,7 @@ class RemnawaveClient:
         self._token = token
         self._timeout = aiohttp.ClientTimeout(total=timeout)
         self._custom_headers = custom_headers or {}
+        self._send_forwarded_headers = send_forwarded_headers
         self._session: aiohttp.ClientSession | None = None
 
         self.users = UsersRoute(self)
@@ -116,7 +148,10 @@ class RemnawaveClient:
                 "Authorization": f"Bearer {self._token}",
                 "User-Agent": "remnacrow",
             }
-            if self._base_url.startswith("http://"):
+            send_forwarded = self._send_forwarded_headers
+            if send_forwarded is None:
+                send_forwarded = _is_local_host(self._base_url)
+            if send_forwarded and self._base_url.startswith("http://"):
                 headers["x-forwarded-proto"] = "https"
                 headers["x-forwarded-for"] = "127.0.0.1"
             headers.update(self._custom_headers)
