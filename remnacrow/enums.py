@@ -26,6 +26,22 @@ class SubscriptionTemplateType(enum.StrEnum):
     SINGBOX = "SINGBOX"
 
 
+class OAuth2Provider(enum.StrEnum):
+    """OAuth2 provider identifier accepted by auth endpoints"""
+    TELEGRAM = "telegram"
+    GITHUB = "github"
+    POCKETID = "pocketid"
+    YANDEX = "yandex"
+    KEYCLOAK = "keycloak"
+    GENERIC = "generic"
+
+
+class ApiTokenScopeKind(enum.StrEnum):
+    """Read/write marker on API-token scope endpoint descriptions"""
+    READ = "read"
+    WRITE = "write"
+
+
 class NodeBulkAction(enum.StrEnum):
     """Action passed to ``NodesRoute.bulk_nodes_action`` for many nodes at once"""
     ENABLE = "ENABLE"

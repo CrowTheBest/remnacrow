@@ -9,11 +9,15 @@ import msgspec
 
 from .exceptions import error_for_status
 from .routes import (
+    AuthRoute,
     ExternalSquadsRoute,
     HwidRoute,
     InternalSquadsRoute,
     NodesRoute,
+    PasskeysRoute,
     StatsRoute,
+    SystemRoute,
+    TokensRoute,
     SubscriptionPageConfigsRoute,
     SubscriptionSettingsRoute,
     SubscriptionTemplatesRoute,
@@ -51,7 +55,7 @@ class RemnawaveClient:
     def __init__(
         self,
         base_url: str,
-        token: str,
+        token: str = "",
         *,
         timeout: float = 30.0,
         custom_headers: dict[str, str] | None = None,
@@ -59,7 +63,8 @@ class RemnawaveClient:
     ) -> None:
         """
         :param base_url: panel host; ``https://`` is assumed when no scheme is given
-        :param token: API token or admin JWT sent as ``Authorization: Bearer``
+        :param token: API token or admin JWT sent as ``Authorization: Bearer``.
+            Leave empty for unauthenticated auth endpoints such as login/status.
         :param timeout: total per-request timeout in seconds
         :param custom_headers: extra headers merged into every request (wins over
             the defaults)
@@ -82,6 +87,10 @@ class RemnawaveClient:
         self._send_forwarded_headers = send_forwarded_headers
         self._session: aiohttp.ClientSession | None = None
 
+        self.auth = AuthRoute(self)
+        self.passkeys = PasskeysRoute(self)
+        self.tokens = TokensRoute(self)
+        self.system = SystemRoute(self)
         self.users = UsersRoute(self)
         self.hwid = HwidRoute(self)
         self.nodes = NodesRoute(self)
@@ -144,10 +153,9 @@ class RemnawaveClient:
 
     def _ensure_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
-            headers = {
-                "Authorization": f"Bearer {self._token}",
-                "User-Agent": "remnacrow",
-            }
+            headers = {"User-Agent": "remnacrow"}
+            if self._token:
+                headers["Authorization"] = f"Bearer {self._token}"
             send_forwarded = self._send_forwarded_headers
             if send_forwarded is None:
                 send_forwarded = _is_local_host(self._base_url)
