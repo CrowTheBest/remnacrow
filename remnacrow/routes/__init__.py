@@ -1,5 +1,6 @@
 from .auth import AuthRoute
 from .external_squads import ExternalSquadsRoute
+from .hosts import HostsRoute
 from .hwid import HwidRoute
 from .internal_squads import InternalSquadsRoute
 from .nodes import NodesRoute
@@ -16,6 +17,7 @@ from .users import UsersRoute
 __all__ = [
     "AuthRoute",
     "ExternalSquadsRoute",
+    "HostsRoute",
     "HwidRoute",
     "InternalSquadsRoute",
     "NodesRoute",

@@ -6,6 +6,10 @@ class DeletedResult(Struct):
     is_deleted: bool
 
 
+class UpdatedResult(Struct):
+    is_updated: bool
+
+
 # .response on every fire-and-forget action endpoint (restart, bulk actions,
 # reset-traffic, add/remove all users). ``event_sent`` only confirms the panel
 # dispatched the internal event — not that the work finished.

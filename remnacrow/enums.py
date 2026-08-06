@@ -36,6 +36,29 @@ class OAuth2Provider(enum.StrEnum):
     GENERIC = "generic"
 
 
+class HostAlpn(enum.StrEnum):
+    H3 = "h3"
+    H2 = "h2"
+    HTTP_1_1 = "http/1.1"
+    H2_HTTP_1_1 = "h2,http/1.1"
+    H3_H2_HTTP_1_1 = "h3,h2,http/1.1"
+    H3_H2 = "h3,h2"
+
+
+class HostSecurityLayer(enum.StrEnum):
+    DEFAULT = "DEFAULT"
+    TLS = "TLS"
+    NONE = "NONE"
+
+
+class HostMihomoIpVersion(enum.StrEnum):
+    DUAL = "dual"
+    IPV4 = "ipv4"
+    IPV6 = "ipv6"
+    IPV4_PREFER = "ipv4-prefer"
+    IPV6_PREFER = "ipv6-prefer"
+
+
 class ApiTokenScopeKind(enum.StrEnum):
     """Read/write marker on API-token scope endpoint descriptions"""
     READ = "read"

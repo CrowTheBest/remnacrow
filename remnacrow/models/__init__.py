@@ -1,6 +1,9 @@
 from ..enums import (
     ApiTokenScopeKind,
     FilterMode,
+    HostAlpn,
+    HostMihomoIpVersion,
+    HostSecurityLayer,
     HwidField,
     NodeBulkAction,
     OAuth2Provider,
@@ -24,6 +27,7 @@ from .common import (
     DeletedResult,
     EventSentResult,
     TagsResult,
+    UpdatedResult,
 )
 from .filters import Filter, Sort
 from .hwid import (
@@ -36,6 +40,7 @@ from .hwid import (
     HwidTopUser,
     HwidTopUsersPage,
 )
+from .hosts import Host, HostInbound
 from .nodes import (
     Node,
     NodeConfigProfile,
@@ -197,6 +202,11 @@ __all__ = [
     "ExternalSquadTemplate",
     "Filter",
     "FilterMode",
+    "Host",
+    "HostAlpn",
+    "HostInbound",
+    "HostMihomoIpVersion",
+    "HostSecurityLayer",
     "HwidAppCount",
     "HwidDevice",
     "HwidDevicesPage",
@@ -280,6 +290,7 @@ __all__ = [
     "TorrentBlockerTopNode",
     "TorrentBlockerTopUser",
     "TrafficLimitStrategy",
+    "UpdatedResult",
     "UsageSeries",
     "UsageTopNode",
     "UsageTopUser",

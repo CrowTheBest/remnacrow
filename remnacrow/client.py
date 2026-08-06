@@ -11,6 +11,7 @@ from .exceptions import error_for_status
 from .routes import (
     AuthRoute,
     ExternalSquadsRoute,
+    HostsRoute,
     HwidRoute,
     InternalSquadsRoute,
     NodesRoute,
@@ -91,6 +92,7 @@ class RemnawaveClient:
         self.passkeys = PasskeysRoute(self)
         self.tokens = TokensRoute(self)
         self.system = SystemRoute(self)
+        self.hosts = HostsRoute(self)
         self.users = UsersRoute(self)
         self.hwid = HwidRoute(self)
         self.nodes = NodesRoute(self)
