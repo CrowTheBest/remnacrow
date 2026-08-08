@@ -3,6 +3,8 @@ from .external_squads import ExternalSquadsRoute
 from .hosts import HostsRoute
 from .hwid import HwidRoute
 from .internal_squads import InternalSquadsRoute
+from .ip_control import IpControlRoute
+from .metadata import MetadataRoute
 from .nodes import NodesRoute
 from .passkeys import PasskeysRoute
 from .stats import StatsRoute
@@ -20,6 +22,8 @@ __all__ = [
     "HostsRoute",
     "HwidRoute",
     "InternalSquadsRoute",
+    "IpControlRoute",
+    "MetadataRoute",
     "NodesRoute",
     "PasskeysRoute",
     "StatsRoute",

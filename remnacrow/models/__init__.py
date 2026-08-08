@@ -41,6 +41,18 @@ from .hwid import (
     HwidTopUsersPage,
 )
 from .hosts import Host, HostInbound
+from .ip_control import (
+    FetchUserIpsJobResult,
+    FetchUserIpsResult,
+    FetchUsersIpsJobResult,
+    FetchUsersIpsResult,
+    IpControlJob,
+    IpControlNodeIps,
+    IpControlProgress,
+    IpControlSeenIp,
+    IpControlUserIps,
+)
+from .metadata import EntityMetadata
 from .nodes import (
     Node,
     NodeConfigProfile,
@@ -192,6 +204,7 @@ __all__ = [
     "ConnectionKeys",
     "CpuStats",
     "DeletedResult",
+    "EntityMetadata",
     "EventSentResult",
     "ExternalSquad",
     "ExternalSquadHostOverrides",
@@ -200,6 +213,10 @@ __all__ = [
     "ExternalSquadsPage",
     "ExternalSquadSubscriptionSettings",
     "ExternalSquadTemplate",
+    "FetchUserIpsJobResult",
+    "FetchUserIpsResult",
+    "FetchUsersIpsJobResult",
+    "FetchUsersIpsResult",
     "Filter",
     "FilterMode",
     "Host",
@@ -219,6 +236,11 @@ __all__ = [
     "InternalSquad",
     "InternalSquadInfo",
     "InternalSquadsPage",
+    "IpControlJob",
+    "IpControlNodeIps",
+    "IpControlProgress",
+    "IpControlSeenIp",
+    "IpControlUserIps",
     "LegacyNodeUserUsage",
     "LegacyUserNodeUsage",
     "MemoryStats",

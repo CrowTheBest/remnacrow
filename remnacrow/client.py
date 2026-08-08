@@ -14,6 +14,8 @@ from .routes import (
     HostsRoute,
     HwidRoute,
     InternalSquadsRoute,
+    IpControlRoute,
+    MetadataRoute,
     NodesRoute,
     PasskeysRoute,
     StatsRoute,
@@ -93,6 +95,8 @@ class RemnawaveClient:
         self.tokens = TokensRoute(self)
         self.system = SystemRoute(self)
         self.hosts = HostsRoute(self)
+        self.ip_control = IpControlRoute(self)
+        self.metadata = MetadataRoute(self)
         self.users = UsersRoute(self)
         self.hwid = HwidRoute(self)
         self.nodes = NodesRoute(self)
