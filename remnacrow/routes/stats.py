@@ -144,6 +144,32 @@ class StatsRoute(BaseRoute):
         )
         return envelope.response
 
+    async def get_nodes_users_usage(
+        self,
+        nodes_uuids: list[str],
+        *,
+        top_users_limit: int,
+        start: datetime | str,
+        end: datetime | str,
+    ) -> NodeUsersUsageChart:
+        """
+        Top user usage across several nodes
+        (POST /api/bandwidth-stats/nodes/users)
+        """
+        params: dict[str, Any] = {
+            "topUsersLimit": top_users_limit,
+            "start": _isoformat(start),
+            "end": _isoformat(end),
+        }
+        envelope: Envelope[NodeUsersUsageChart] = await self._client.request(
+            "POST",
+            "/api/bandwidth-stats/nodes/users",
+            params=params,
+            body={"nodesUuids": nodes_uuids},
+            response_type=Envelope[NodeUsersUsageChart],
+        )
+        return envelope.response
+
     async def get_node_users_usage_legacy(
         self,
         node_uuid: str,

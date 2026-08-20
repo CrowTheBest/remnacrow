@@ -13,12 +13,10 @@ from .base import BaseRoute
 
 
 class SubscriptionsRoute(BaseRoute):
-    """``/api/subscriptions`` admin reads, mounted at ``RemnawaveClient.subscriptions``
+    """``/api/subscriptions`` admin reads and public ``/api/sub`` helpers.
 
     These are *admin-facing* endpoints — i.e. the same panel UI that lists
     users also lets you peek at each user's rendered subscription metadata.
-    The *public* ``/api/sub/{shortUuid}`` route that VPN clients hit is not
-    covered here.
     """
 
     async def get_subscriptions(
@@ -81,6 +79,36 @@ class SubscriptionsRoute(BaseRoute):
             response_type=Envelope[Subscription],
         )
         return envelope.response
+
+    async def get_public_subscription_info(self, short_uuid: str) -> Subscription:
+        """
+        Fetch public subscription info by short uuid
+        (GET /api/sub/{shortUuid}/info)
+        """
+        envelope: Envelope[Subscription] = await self._client.request(
+            "GET",
+            f"/api/sub/{short_uuid}/info",
+            response_type=Envelope[Subscription],
+        )
+        return envelope.response
+
+    async def get_public_subscription(self, short_uuid: str) -> str:
+        """Fetch the public subscription payload as text (GET /api/sub/{shortUuid})"""
+        return await self._client.request_text("GET", f"/api/sub/{short_uuid}")
+
+    async def get_public_subscription_by_client_type(
+        self,
+        short_uuid: str,
+        client_type: str,
+    ) -> str:
+        """
+        Fetch the public subscription payload for one client type
+        (GET /api/sub/{shortUuid}/{clientType}).
+        """
+        return await self._client.request_text(
+            "GET",
+            f"/api/sub/{short_uuid}/{client_type}",
+        )
 
     async def get_raw_subscription_by_short_uuid(
         self,

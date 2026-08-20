@@ -10,14 +10,19 @@ import msgspec
 from .exceptions import error_for_status
 from .routes import (
     AuthRoute,
+    ConfigProfilesRoute,
     ExternalSquadsRoute,
     HostsRoute,
     HwidRoute,
+    InfraBillingRoute,
     InternalSquadsRoute,
     IpControlRoute,
     MetadataRoute,
+    NodePluginsRoute,
     NodesRoute,
     PasskeysRoute,
+    RemnawaveSettingsRoute,
+    SnippetsRoute,
     StatsRoute,
     SystemRoute,
     TokensRoute,
@@ -97,6 +102,11 @@ class RemnawaveClient:
         self.hosts = HostsRoute(self)
         self.ip_control = IpControlRoute(self)
         self.metadata = MetadataRoute(self)
+        self.config_profiles = ConfigProfilesRoute(self)
+        self.node_plugins = NodePluginsRoute(self)
+        self.infra_billing = InfraBillingRoute(self)
+        self.remnawave_settings = RemnawaveSettingsRoute(self)
+        self.snippets = SnippetsRoute(self)
         self.users = UsersRoute(self)
         self.hwid = HwidRoute(self)
         self.nodes = NodesRoute(self)
@@ -185,6 +195,31 @@ class RemnawaveClient:
         body: msgspec.Struct | dict[str, Any] | None = None,
         response_type: Any = None,
     ) -> Any:
+        raw = await self.request_bytes(method, path, params=params, body=body)
+
+        if response_type is None or not raw:
+            return None
+        return _decoder(response_type).decode(raw)
+
+    async def request_text(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        body: msgspec.Struct | dict[str, Any] | None = None,
+    ) -> str:
+        raw = await self.request_bytes(method, path, params=params, body=body)
+        return raw.decode("utf-8", errors="replace")
+
+    async def request_bytes(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        body: msgspec.Struct | dict[str, Any] | None = None,
+    ) -> bytes:
         session = self._ensure_session()
         url = f"{self._base_url}{path}"
         data = ENCODER.encode(body) if body is not None else None
@@ -208,6 +243,4 @@ class RemnawaveClient:
 
                 raise err_cls(message, status_code=response.status, payload=error_payload)
 
-            if response_type is None or not raw:
-                return None
-            return _decoder(response_type).decode(raw)
+            return raw

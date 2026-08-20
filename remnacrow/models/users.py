@@ -56,6 +56,12 @@ class UsersPage(Struct):
     total: int
 
 
+class UsersStreamPage(Struct):
+    users: list[User]
+    next_cursor: str | None
+    has_more: bool
+
+
 # item of activeSquads[] inside AccessibleNode
 class AccessibleSquad(Struct):
     squad_name: str

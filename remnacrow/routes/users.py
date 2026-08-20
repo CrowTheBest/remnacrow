@@ -11,6 +11,7 @@ from ..models.users import (
     SubscriptionRequestHistory,
     User,
     UsersPage,
+    UsersStreamPage,
 )
 from .base import BaseRoute, build_list_params, pack
 
@@ -172,6 +173,24 @@ class UsersRoute(BaseRoute):
             "/api/users",
             params=build_list_params(size, start, filters, sort),
             response_type=Envelope[UsersPage],
+        )
+        return envelope.response
+
+    async def get_users_stream(
+        self,
+        *,
+        size: int = 25,
+        cursor: str | None = None,
+    ) -> UsersStreamPage:
+        """List users using cursor-based pagination (GET /api/users/stream)"""
+        params: dict[str, Any] = {"size": size}
+        if cursor is not None:
+            params["cursor"] = cursor
+        envelope: Envelope[UsersStreamPage] = await self._client.request(
+            "GET",
+            "/api/users/stream",
+            params=params,
+            response_type=Envelope[UsersStreamPage],
         )
         return envelope.response
 
