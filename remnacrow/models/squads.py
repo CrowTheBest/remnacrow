@@ -76,8 +76,8 @@ class ExternalSquadSubscriptionSettings(Struct):
     profile_update_interval: int
     is_profile_webpage_url_enabled: bool
     serve_json_at_base_subscription: bool
-    is_show_custom_remarks: bool
     randomize_hosts: bool
+    is_show_custom_remarks: bool = False
     happ_announce: str | None = None
     happ_routing: str | None = None
 
