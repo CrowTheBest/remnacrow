@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from ..models.envelope import Envelope
@@ -16,9 +16,13 @@ from ..models.stats import (
 from .base import BaseRoute
 
 
-def _isoformat(value: datetime | str) -> str:
-    """Normalize a start/end query param to an ISO string the panel accepts"""
-    return value.isoformat() if isinstance(value, datetime) else value
+def _dateformat(value: date | datetime | str) -> str:
+    """Normalize a start/end query param to the date string the panel accepts."""
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    return value
 
 
 class StatsRoute(BaseRoute):
@@ -90,23 +94,23 @@ class StatsRoute(BaseRoute):
         self,
         *,
         top_nodes_limit: int,
-        start: datetime | str,
-        end: datetime | str,
+        start: date | datetime | str,
+        end: date | datetime | str,
     ) -> BandwidthUsageChart:
         """
         Top-N node usage with sparkline + time series for a date range
         (GET /api/bandwidth-stats/nodes)
 
         :param top_nodes_limit: how many nodes to keep in ``top_nodes``
-        :param start: range start — ``datetime`` (ISO-formatted) or raw string
-        :param end: range end — ``datetime`` (ISO-formatted) or raw string
+        :param start: range start — ``date``, ``datetime`` or raw string
+        :param end: range end — ``date``, ``datetime`` or raw string
         :return: :class:`~remnacrow.models.BandwidthUsageChart` with
             ``categories``, ``sparkline_data``, ``top_nodes``, ``series``
         """
         params: dict[str, Any] = {
             "topNodesLimit": top_nodes_limit,
-            "start": _isoformat(start),
-            "end": _isoformat(end),
+            "start": _dateformat(start),
+            "end": _dateformat(end),
         }
         envelope: Envelope[BandwidthUsageChart] = await self._client.request(
             "GET", "/api/bandwidth-stats/nodes",
@@ -119,8 +123,8 @@ class StatsRoute(BaseRoute):
         node_uuid: str,
         *,
         top_users_limit: int,
-        start: datetime | str,
-        end: datetime | str,
+        start: date | datetime | str,
+        end: date | datetime | str,
     ) -> NodeUsersUsageChart:
         """
         Per-node top user usage for a date range
@@ -128,15 +132,15 @@ class StatsRoute(BaseRoute):
 
         :param node_uuid: uuid of the node
         :param top_users_limit: how many users to keep in ``top_users``
-        :param start: range start — ``datetime`` or raw string
-        :param end: range end — ``datetime`` or raw string
+        :param start: range start — ``date``, ``datetime`` or raw string
+        :param end: range end — ``date``, ``datetime`` or raw string
         :return: :class:`~remnacrow.models.NodeUsersUsageChart` with
             ``categories``, ``sparkline_data``, ``top_users``
         """
         params: dict[str, Any] = {
             "topUsersLimit": top_users_limit,
-            "start": _isoformat(start),
-            "end": _isoformat(end),
+            "start": _dateformat(start),
+            "end": _dateformat(end),
         }
         envelope: Envelope[NodeUsersUsageChart] = await self._client.request(
             "GET", f"/api/bandwidth-stats/nodes/{node_uuid}/users",
@@ -149,8 +153,8 @@ class StatsRoute(BaseRoute):
         nodes_uuids: list[str],
         *,
         top_users_limit: int,
-        start: datetime | str,
-        end: datetime | str,
+        start: date | datetime | str,
+        end: date | datetime | str,
     ) -> NodeUsersUsageChart:
         """
         Top user usage across several nodes
@@ -158,8 +162,8 @@ class StatsRoute(BaseRoute):
         """
         params: dict[str, Any] = {
             "topUsersLimit": top_users_limit,
-            "start": _isoformat(start),
-            "end": _isoformat(end),
+            "start": _dateformat(start),
+            "end": _dateformat(end),
         }
         envelope: Envelope[NodeUsersUsageChart] = await self._client.request(
             "POST",
@@ -174,8 +178,8 @@ class StatsRoute(BaseRoute):
         self,
         node_uuid: str,
         *,
-        start: datetime | str,
-        end: datetime | str,
+        start: date | datetime | str,
+        end: date | datetime | str,
     ) -> list[LegacyNodeUserUsage]:
         """
         Flat per-user daily totals on a single node — pre-chart format
@@ -188,8 +192,8 @@ class StatsRoute(BaseRoute):
             entries (user_uuid, username, node_uuid, total, date)
         """
         params: dict[str, Any] = {
-            "start": _isoformat(start),
-            "end": _isoformat(end),
+            "start": _dateformat(start),
+            "end": _dateformat(end),
         }
         envelope: Envelope[list[LegacyNodeUserUsage]] = await self._client.request(
             "GET", f"/api/bandwidth-stats/nodes/{node_uuid}/users/legacy",
@@ -202,8 +206,8 @@ class StatsRoute(BaseRoute):
         user_uuid: str,
         *,
         top_nodes_limit: int,
-        start: datetime | str,
-        end: datetime | str,
+        start: date | datetime | str,
+        end: date | datetime | str,
     ) -> BandwidthUsageChart:
         """
         Per-user usage across nodes with sparkline + time series
@@ -218,8 +222,8 @@ class StatsRoute(BaseRoute):
         """
         params: dict[str, Any] = {
             "topNodesLimit": top_nodes_limit,
-            "start": _isoformat(start),
-            "end": _isoformat(end),
+            "start": _dateformat(start),
+            "end": _dateformat(end),
         }
         envelope: Envelope[BandwidthUsageChart] = await self._client.request(
             "GET", f"/api/bandwidth-stats/users/{user_uuid}",
@@ -231,8 +235,8 @@ class StatsRoute(BaseRoute):
         self,
         user_uuid: str,
         *,
-        start: datetime | str,
-        end: datetime | str,
+        start: date | datetime | str,
+        end: date | datetime | str,
     ) -> list[LegacyUserNodeUsage]:
         """
         Flat per-node daily totals for one user — pre-chart format
@@ -245,8 +249,8 @@ class StatsRoute(BaseRoute):
             entries (user_uuid, node_uuid, node_name, country_code, total, date)
         """
         params: dict[str, Any] = {
-            "start": _isoformat(start),
-            "end": _isoformat(end),
+            "start": _dateformat(start),
+            "end": _dateformat(end),
         }
         envelope: Envelope[list[LegacyUserNodeUsage]] = await self._client.request(
             "GET", f"/api/bandwidth-stats/users/{user_uuid}/legacy",
